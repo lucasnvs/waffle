@@ -4,6 +4,8 @@ import com.lucasnvs.waffle.exception.RaffleNotFoundException;
 import com.lucasnvs.waffle.exception.RaffleNotOpenException;
 import com.lucasnvs.waffle.exception.TicketAlreadySoldException;
 import com.lucasnvs.waffle.exception.dto.ErrorResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,6 +15,8 @@ import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(RaffleNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleRaffleNotFound(RaffleNotFoundException ex) {
@@ -49,6 +53,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(Exception ex) {
+        logger.error("An unexpected error occurred: ", ex);
         ErrorResponse error = new ErrorResponse(
                 "An unexpected error occurred",
                 "INTERNAL_ERROR",

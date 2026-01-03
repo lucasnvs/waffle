@@ -7,26 +7,27 @@ import com.lucasnvs.waffle.raffle.RaffleEntity;
 import com.lucasnvs.waffle.raffle.RaffleRepository;
 import com.lucasnvs.waffle.raffle.RaffleStatus;
 import com.lucasnvs.waffle.ticket.dto.PurchaseTicketRequest;
-import com.lucasnvs.waffle.ticket.dto.TicketResponse;
-import jakarta.transaction.Transactional;
+import com.lucasnvs.waffle.ticket.queue.TicketPurchaseMessage;
+import com.lucasnvs.waffle.ticket.queue.TicketPurchaseProducer;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TicketService {
 
-    private final TicketRepository ticketRepository;
+    private final TicketPurchaseProducer producer;
     private final RaffleRepository raffleRepository;
+    private final TicketRepository ticketRepository;
 
     public TicketService(
-            TicketRepository ticketRepository,
-            RaffleRepository raffleRepository
+            TicketPurchaseProducer producer,
+            RaffleRepository raffleRepository, TicketRepository ticketRepository
     ) {
-        this.ticketRepository = ticketRepository;
+        this.producer = producer;
         this.raffleRepository = raffleRepository;
+        this.ticketRepository = ticketRepository;
     }
 
-    @Transactional
-    public TicketResponse purchase(
+    public void requestPurchase(
             Long raffleId,
             PurchaseTicketRequest request
     ) {
@@ -41,20 +42,11 @@ public class TicketService {
             throw new TicketAlreadySoldException(raffleId, request.number());
         }
 
-        TicketEntity ticket = new TicketEntity();
-        ticket.setNumber(request.number());
-        ticket.setUserId(request.userId());
-        ticket.setStatus(TicketStatus.PURCHASED);
-        ticket.setRaffle(raffle);
-
-        TicketEntity saved = ticketRepository.save(ticket);
-
-        return new TicketResponse(
-                saved.getId(),
+        producer.send(new TicketPurchaseMessage(
                 raffleId,
-                saved.getNumber(),
-                saved.getStatus()
-        );
+                request.number(),
+                request.userId()
+        ));
     }
 }
 
