@@ -2,6 +2,7 @@ package com.lucasnvs.waffle.ticket;
 
 import com.lucasnvs.waffle.ticket.dto.PurchaseTicketRequest;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +13,11 @@ import java.util.Map;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final IdempotencyService idempotencyService;
 
-    public TicketController(TicketService ticketService) {
+    public TicketController(TicketService ticketService, IdempotencyService idempotencyService) {
         this.ticketService = ticketService;
+        this.idempotencyService = idempotencyService;
     }
 
     @PostMapping
@@ -22,6 +25,13 @@ public class TicketController {
             @PathVariable Long raffleId,
             @RequestBody @Valid PurchaseTicketRequest request
     ) {
+
+        boolean locked = idempotencyService.tryLock(raffleId, request.number());
+
+        if(!locked) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
         ticketService.requestPurchase(raffleId, request);
         return ResponseEntity.accepted().body(
                 Map.of(
