@@ -2,6 +2,7 @@ package com.lucasnvs.waffle.exception.handler;
 
 import com.lucasnvs.waffle.exception.RaffleNotFoundException;
 import com.lucasnvs.waffle.exception.RaffleNotOpenException;
+import com.lucasnvs.waffle.exception.ServiceUnavailableException;
 import com.lucasnvs.waffle.exception.TicketAlreadySoldException;
 import com.lucasnvs.waffle.exception.dto.ErrorResponse;
 import org.slf4j.Logger;
@@ -49,6 +50,18 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ServiceUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleServiceUnavailable(ServiceUnavailableException ex) {
+        logger.warn("Service unavailable: ", ex);
+        ErrorResponse error = new ErrorResponse(
+                ex.getMessage(),
+                "SERVICE_UNAVAILABLE",
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
     @ExceptionHandler(Exception.class)
