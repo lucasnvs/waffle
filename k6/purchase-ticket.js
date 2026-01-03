@@ -1,5 +1,5 @@
 import http from 'k6/http';
-import { check, sleep } from 'k6';
+import { check } from 'k6';
 
 export const options = {
   stages: [
@@ -16,7 +16,7 @@ export default function () {
 
   const payload = JSON.stringify({
     number: 7,
-    userId: `user-${__VU}-${__ITER}`,
+    userId: 'same-user',
   });
 
   const headers = {
@@ -30,8 +30,7 @@ export default function () {
   );
 
   check(res, {
-    'status is 202': (r) => r.status === 202,
+    'status is 202 or 409': (r) =>
+      r.status === 202 || r.status === 409,
   });
-
-  sleep(0.1);
 }
