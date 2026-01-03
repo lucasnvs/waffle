@@ -2,35 +2,32 @@ import http from 'k6/http';
 import { check } from 'k6';
 
 export const options = {
-  stages: [
-    { duration: '10s', target: 50 },
-    { duration: '20s', target: 200 },
-    { duration: '10s', target: 0 },
-  ],
+  vus: 20,
+  duration: '30s',
 };
 
 const BASE_URL = 'http://localhost:8080';
 
 export default function () {
-  const raffleId = 1;
-
   const payload = JSON.stringify({
-    number: 7,
-    userId: 'same-user',
+    number: 7
   });
 
   const headers = {
     'Content-Type': 'application/json',
+    'X-User-Id': 'rate-limit-user'
   };
 
   const res = http.post(
-    `${BASE_URL}/raffles/${raffleId}/tickets`,
+    `${BASE_URL}/raffles/1/tickets`,
     payload,
     { headers }
   );
 
   check(res, {
-    'status is 202 or 409': (r) =>
-      r.status === 202 || r.status === 409,
+    'status is 202, 409 or 429': (r) =>
+      r.status === 202 ||
+      r.status === 409 ||
+      r.status === 429,
   });
 }

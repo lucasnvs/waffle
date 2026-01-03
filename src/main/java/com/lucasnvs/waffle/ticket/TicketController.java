@@ -1,5 +1,6 @@
 package com.lucasnvs.waffle.ticket;
 
+import com.lucasnvs.waffle.common.idempotency.IdempotencyService;
 import com.lucasnvs.waffle.ticket.dto.PurchaseTicketRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<?> purchase(
+            @RequestHeader("X-User-Id") String userId,
             @PathVariable Long raffleId,
             @RequestBody @Valid PurchaseTicketRequest request
     ) {

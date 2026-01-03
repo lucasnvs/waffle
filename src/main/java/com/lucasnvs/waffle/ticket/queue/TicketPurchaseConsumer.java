@@ -1,6 +1,6 @@
 package com.lucasnvs.waffle.ticket.queue;
 
-import com.lucasnvs.waffle.config.RabbitConfig;
+import com.lucasnvs.waffle.common.config.RabbitConfig;
 import com.lucasnvs.waffle.raffle.RaffleEntity;
 import com.lucasnvs.waffle.raffle.RaffleRepository;
 import com.lucasnvs.waffle.ticket.TicketEntity;

@@ -1,4 +1,4 @@
-package com.lucasnvs.waffle.config;
+package com.lucasnvs.waffle.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

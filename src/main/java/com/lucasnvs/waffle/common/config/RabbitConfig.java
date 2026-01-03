@@ -1,4 +1,4 @@
-package com.lucasnvs.waffle.config;
+package com.lucasnvs.waffle.common.config;
 
 import com.rabbitmq.client.AMQP;
 import org.springframework.amqp.core.Binding;

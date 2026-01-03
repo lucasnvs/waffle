@@ -1,4 +1,4 @@
-package com.lucasnvs.waffle.ticket;
+package com.lucasnvs.waffle.common.idempotency;
 
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -25,3 +25,4 @@ public class IdempotencyService {
         return "raffle:" + raffleId + ":ticket:" + number + ":lock";
     }
 }
+

@@ -1,6 +1,6 @@
 package com.lucasnvs.waffle.ticket.queue;
 
-import com.lucasnvs.waffle.config.RabbitConfig;
+import com.lucasnvs.waffle.common.config.RabbitConfig;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
