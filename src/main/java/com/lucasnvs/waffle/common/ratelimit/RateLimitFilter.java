@@ -26,7 +26,13 @@ public class RateLimitFilter extends OncePerRequestFilter {
             FilterChain filterChain)
             throws ServletException, IOException {
 
-        if (!request.getRequestURI().contains("/raffles")) {
+        String uri = request.getRequestURI();
+
+        // Skip rate limiting for Swagger UI, API docs, actuator and static resources
+        if (uri.startsWith("/swagger-ui") ||
+            uri.startsWith("/v3/api-docs") ||
+            uri.startsWith("/actuator") ||
+            !uri.contains("/raffles")) {
             filterChain.doFilter(request, response);
             return;
         }
