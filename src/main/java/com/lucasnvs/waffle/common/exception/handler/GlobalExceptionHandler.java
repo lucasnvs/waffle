@@ -1,10 +1,10 @@
-package com.lucasnvs.waffle.exception.handler;
+package com.lucasnvs.waffle.common.exception.handler;
 
-import com.lucasnvs.waffle.exception.RaffleNotFoundException;
-import com.lucasnvs.waffle.exception.RaffleNotOpenException;
-import com.lucasnvs.waffle.exception.ServiceUnavailableException;
-import com.lucasnvs.waffle.exception.TicketAlreadySoldException;
-import com.lucasnvs.waffle.exception.dto.ErrorResponse;
+import com.lucasnvs.waffle.common.exception.RaffleNotFoundException;
+import com.lucasnvs.waffle.common.exception.RaffleNotOpenException;
+import com.lucasnvs.waffle.common.exception.ServiceUnavailableException;
+import com.lucasnvs.waffle.common.exception.TicketAlreadySoldException;
+import com.lucasnvs.waffle.common.exception.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

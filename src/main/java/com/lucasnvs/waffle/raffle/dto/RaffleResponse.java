@@ -2,43 +2,29 @@ package com.lucasnvs.waffle.raffle.dto;
 
 import com.lucasnvs.waffle.raffle.RaffleDrawMethod;
 import com.lucasnvs.waffle.raffle.RafflePaymentMethod;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import com.lucasnvs.waffle.raffle.RaffleStatus;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Set;
 
-public record CreateRaffleRequest(
-        @NotBlank(message = "Title is required")
+public record RaffleResponse(
+        Long id,
         String title,
-
-        @Positive(message = "Total tickets must be positive")
         int totalTickets,
-
-        @Positive(message = "Ticket price must be positive")
         double ticketPrice,
-
         String description,
-
         boolean hasDrawDate,
-
         LocalDateTime drawDate,
-
         LocalTime drawTime,
-
         String coverImage,
-
         String contactPhoneNumber,
-
         boolean isPublic,
-
         boolean showWinnerPublicly,
-
-        @NotNull(message = "Payment methods are required")
         Set<RafflePaymentMethod> paymentMethods,
-
-        @NotNull(message = "Draw method is required")
-        RaffleDrawMethod drawMethod
+        RaffleDrawMethod drawMethod,
+        RaffleStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
 ) {}
+

@@ -1,4 +1,4 @@
-package com.lucasnvs.waffle.exception;
+package com.lucasnvs.waffle.common.exception;
 
 public class TicketAlreadySoldException extends RuntimeException {
     public TicketAlreadySoldException(Long raffleId, Integer ticketNumber) {

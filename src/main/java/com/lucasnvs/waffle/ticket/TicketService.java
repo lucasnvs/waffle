@@ -1,9 +1,9 @@
 package com.lucasnvs.waffle.ticket;
 
-import com.lucasnvs.waffle.exception.RaffleNotFoundException;
-import com.lucasnvs.waffle.exception.RaffleNotOpenException;
-import com.lucasnvs.waffle.exception.ServiceUnavailableException;
-import com.lucasnvs.waffle.exception.TicketAlreadySoldException;
+import com.lucasnvs.waffle.common.exception.RaffleNotFoundException;
+import com.lucasnvs.waffle.common.exception.RaffleNotOpenException;
+import com.lucasnvs.waffle.common.exception.ServiceUnavailableException;
+import com.lucasnvs.waffle.common.exception.TicketAlreadySoldException;
 import com.lucasnvs.waffle.raffle.RaffleEntity;
 import com.lucasnvs.waffle.raffle.RaffleRepository;
 import com.lucasnvs.waffle.raffle.RaffleStatus;

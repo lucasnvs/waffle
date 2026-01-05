@@ -1,4 +1,4 @@
-package com.lucasnvs.waffle.exception.dto;
+package com.lucasnvs.waffle.common.exception.dto;
 
 import java.time.LocalDateTime;
 
