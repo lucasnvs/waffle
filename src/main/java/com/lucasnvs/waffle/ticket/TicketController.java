@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/raffles/{raffleId}/tickets")
@@ -28,8 +29,8 @@ public class TicketController {
     }
 
     @PostMapping
-    @Operation(summary = "Comprar ticket",
-               description = "Solicita a compra de um ticket para uma rifa. O processamento é assíncrono.")
+    @Operation(summary = "Comprar tickets",
+               description = "Solicita a compra de um ou mais tickets para uma rifa. O processamento é assíncrono.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "202", description = "Solicitação de compra aceita e em processamento"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos ou X-User-Id não fornecido"),
@@ -47,8 +48,8 @@ public class TicketController {
 
             @RequestBody @Valid PurchaseTicketRequest request
     ) {
-
-        boolean locked = idempotencyService.tryLock(raffleId, request.number());
+        Integer idempotencyKey = generateIdempotencyKey(raffleId, request);
+        boolean locked = idempotencyService.tryLock(raffleId, idempotencyKey);
 
         if(!locked) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
@@ -57,10 +58,28 @@ public class TicketController {
         ticketService.requestPurchase(raffleId, request);
         return ResponseEntity.accepted().body(
                 Map.of(
-                        "message", "Your ticket purchase is being processed.",
+                        "message", "Your ticket purchase request is being processed.",
                         "raffleId", raffleId,
-                        "number", request.number()
+                        "ticketsCount", request.numbers().size(),
+                        "numbers", request.numbers()
                 )
         );
     }
+
+    /**
+     * Generates a unique idempotency key based on raffle ID, ticket numbers, and user ID.
+     * This ensures that duplicate requests with the same tickets are properly identified.
+     *
+     * @param raffleId the raffle ID
+     * @param request the purchase request containing ticket numbers and user ID
+     * @return a hash code representing the unique combination
+     */
+    private Integer generateIdempotencyKey(Long raffleId, PurchaseTicketRequest request) {
+        return Objects.hash(
+                raffleId,
+                request.numbers(),
+                request.userId()
+        );
+    }
 }
+

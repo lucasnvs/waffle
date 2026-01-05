@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,12 +43,13 @@ class TicketServiceTest {
         RaffleEntity raffle = new RaffleEntity();
         raffle.setId(1L);
         raffle.setStatus(RaffleStatus.OPEN);
+        raffle.setTotalTickets(100);
 
         when(raffleRepository.findById(1L))
                 .thenReturn(Optional.of(raffle));
 
         PurchaseTicketRequest request =
-                new PurchaseTicketRequest(42, "user-1");
+                new PurchaseTicketRequest(List.of(42), "user-1");
 
         service.requestPurchase(1L, request);
 
@@ -59,12 +61,13 @@ class TicketServiceTest {
         RaffleEntity raffle = new RaffleEntity();
         raffle.setId(1L);
         raffle.setStatus(RaffleStatus.CLOSED);
+        raffle.setTotalTickets(100);
 
         when(raffleRepository.findById(1L))
                 .thenReturn(Optional.of(raffle));
 
         PurchaseTicketRequest request =
-                new PurchaseTicketRequest(42, "user-1");
+                new PurchaseTicketRequest(List.of(42), "user-1");
 
         assertThrows(
                 RaffleNotOpenException.class,
@@ -79,6 +82,7 @@ class TicketServiceTest {
         RaffleEntity raffle = new RaffleEntity();
         raffle.setId(1L);
         raffle.setStatus(RaffleStatus.OPEN);
+        raffle.setTotalTickets(100);
 
         when(raffleRepository.findById(1L))
                 .thenReturn(Optional.of(raffle));
@@ -86,7 +90,7 @@ class TicketServiceTest {
                 .thenReturn(true);
 
         PurchaseTicketRequest request =
-                new PurchaseTicketRequest(42, "user-1");
+                new PurchaseTicketRequest(List.of(42), "user-1");
 
         assertThrows(
                 TicketAlreadySoldException.class,

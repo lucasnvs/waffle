@@ -14,6 +14,8 @@ import com.lucasnvs.waffle.ticket.queue.TicketPurchaseProducer;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class TicketService {
 
@@ -31,36 +33,52 @@ public class TicketService {
         RaffleEntity raffle = raffleRepository.findById(raffleId)
                 .orElseThrow(() -> new RaffleNotFoundException(raffleId));
 
-        // Validate ticket number range
-        if (request.number() <= 0 || request.number() > raffle.getTotalTickets()) {
-            throw new InvalidTicketNumberException(raffleId, request.number(), raffle.getTotalTickets());
-        }
-
         if (raffle.getStatus() != RaffleStatus.OPEN) {
             throw new RaffleNotOpenException(raffleId);
         }
 
-        if (ticketRepository.existsByRaffleIdAndNumber(raffleId, request.number())) {
-            throw new TicketAlreadySoldException(raffleId, request.number());
-        }
+        validateAllTickets(raffleId, raffle, request.numbers());
 
-        // Only infrastructure errors (RabbitMQ failures) will trigger the circuit breaker
-        sendMessage(raffleId, request);
+        for (Integer ticketNumber : request.numbers()) {
+            sendMessage(raffleId, ticketNumber, request.userId());
+        }
+    }
+
+    /**
+     * Validates all ticket numbers before any are sent to the queue.
+     * This ensures atomic behavior - either all tickets are valid or none are processed.
+     *
+     * @param raffleId the raffle ID
+     * @param raffle the raffle entity
+     * @param ticketNumbers list of ticket numbers to validate
+     * @throws InvalidTicketNumberException if any ticket number is out of range
+     * @throws TicketAlreadySoldException if any ticket is already sold
+     */
+    private void validateAllTickets(Long raffleId, RaffleEntity raffle, List<Integer> ticketNumbers) {
+        for (Integer ticketNumber : ticketNumbers) {
+            if (ticketNumber <= 0 || ticketNumber > raffle.getTotalTickets()) {
+                throw new InvalidTicketNumberException(raffleId, ticketNumber, raffle.getTotalTickets());
+            }
+
+            if (ticketRepository.existsByRaffleIdAndNumber(raffleId, ticketNumber)) {
+                throw new TicketAlreadySoldException(raffleId, ticketNumber);
+            }
+        }
     }
 
     @CircuitBreaker(
             name = "ticketProducer",
             fallbackMethod = "fallback"
     )
-    private void sendMessage(Long raffleId, PurchaseTicketRequest request) {
+    private void sendMessage(Long raffleId, Integer ticketNumber, String userId) {
         producer.send(new TicketPurchaseMessage(
                 raffleId,
-                request.number(),
-                request.userId()
+                ticketNumber,
+                userId
         ));
     }
 
-    private void fallback(Long raffleId, PurchaseTicketRequest request, Throwable ex) {
+    private void fallback(Long raffleId, Integer ticketNumber, String userId, Throwable ex) {
         throw new ServiceUnavailableException("Ticket service temporarily unavailable", ex);
     }
 }
