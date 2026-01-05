@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/raffles")
+@RequestMapping("/api/v1/raffles")
 @Tag(name = "Raffles", description = "API para gerenciamento de rifas")
 public class RaffleController {
 

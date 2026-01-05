@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/raffles/{raffleId}/tickets")
+@RequestMapping("/api/v1/raffles/{raffleId}/tickets")
 @Tag(name = "Tickets", description = "API para compra de tickets de rifas")
 public class TicketController {
 
