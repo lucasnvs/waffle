@@ -21,6 +21,10 @@ spring:
           failureRateThreshold: 50
           waitDurationInOpenState: 10s
           permittedNumberOfCallsInHalfOpenState: 2
+          ignoreExceptions:
+            - com.lucasnvs.waffle.common.exception.RaffleNotFoundException
+            - com.lucasnvs.waffle.common.exception.RaffleNotOpenException
+            - com.lucasnvs.waffle.common.exception.TicketAlreadySoldException
 springdoc:
   api-docs:
     path: /v3/api-docs
