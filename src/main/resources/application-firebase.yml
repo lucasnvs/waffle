@@ -1,0 +1,6 @@
+# Firebase Configuration
+# Set to false to disable Firebase authentication
+# Default: true (Firebase enabled if service account file exists)
+firebase:
+  enabled: true
+

@@ -21,6 +21,9 @@ public class RaffleEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String ownerId; // Firebase UID do criador da rifa
+
     private String title;
 
     private int totalTickets;

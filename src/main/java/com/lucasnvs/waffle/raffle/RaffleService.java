@@ -1,6 +1,8 @@
 package com.lucasnvs.waffle.raffle;
 
+import com.lucasnvs.waffle.auth.domain.AuthenticationService;
 import com.lucasnvs.waffle.common.exception.RaffleNotFoundException;
+import com.lucasnvs.waffle.common.exception.UnauthorizedException;
 import com.lucasnvs.waffle.raffle.dto.CreateRaffleRequest;
 import com.lucasnvs.waffle.raffle.dto.RaffleResponse;
 import com.lucasnvs.waffle.raffle.dto.UpdateRaffleRequest;
@@ -14,14 +16,19 @@ import java.util.stream.Collectors;
 public class RaffleService {
 
     private final RaffleRepository raffleRepository;
+    private final AuthenticationService authenticationService;
 
-    public RaffleService(RaffleRepository raffleRepository) {
+    public RaffleService(RaffleRepository raffleRepository, AuthenticationService authenticationService) {
         this.raffleRepository = raffleRepository;
+        this.authenticationService = authenticationService;
     }
 
     @Transactional
     public RaffleResponse createRaffle(CreateRaffleRequest request) {
+        String currentUserId = authenticationService.getCurrentUserIdOrThrow();
+
         RaffleEntity raffle = new RaffleEntity();
+        raffle.setOwnerId(currentUserId);
         raffle.setTitle(request.title());
         raffle.setTotalTickets(request.totalTickets());
         raffle.setTicketPrice(request.ticketPrice());
@@ -41,6 +48,19 @@ public class RaffleService {
         return toResponse(saved);
     }
 
+    /**
+     * Verifica se o usuário atual pode gerenciar esta rifa
+     * (é o dono ou é admin)
+     */
+    private void validateOwnership(RaffleEntity raffle) {
+        String currentUserId = authenticationService.getCurrentUserIdOrThrow();
+        boolean isAdmin = authenticationService.isCurrentUserAdmin();
+
+        if (!isAdmin && !raffle.getOwnerId().equals(currentUserId)) {
+            throw new UnauthorizedException("You don't have permission to manage this raffle");
+        }
+    }
+
     @Transactional(readOnly = true)
     public RaffleResponse getRaffleById(Long id) {
         RaffleEntity raffle = raffleRepository.findById(id)
@@ -55,10 +75,26 @@ public class RaffleService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<RaffleResponse> getRafflesByUserId(String userId) {
+        return raffleRepository.findByOwnerId(userId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<RaffleResponse> getMyRaffles() {
+        String currentUserId = authenticationService.getCurrentUserIdOrThrow();
+        return getRafflesByUserId(currentUserId);
+    }
+
     @Transactional
     public RaffleResponse updateRaffle(Long id, UpdateRaffleRequest request) {
         RaffleEntity raffle = raffleRepository.findById(id)
                 .orElseThrow(() -> new RaffleNotFoundException(id));
+
+        // Validate ownership before allowing update
+        validateOwnership(raffle);
 
         if (request.title() != null) {
             raffle.setTitle(request.title());
@@ -109,9 +145,12 @@ public class RaffleService {
 
     @Transactional
     public void deleteRaffle(Long id) {
-        if (!raffleRepository.existsById(id)) {
-            throw new RaffleNotFoundException(id);
-        }
+        RaffleEntity raffle = raffleRepository.findById(id)
+                .orElseThrow(() -> new RaffleNotFoundException(id));
+
+        // Validate ownership before allowing delete
+        validateOwnership(raffle);
+
         raffleRepository.deleteById(id);
     }
 

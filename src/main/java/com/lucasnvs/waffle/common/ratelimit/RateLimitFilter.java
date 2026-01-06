@@ -1,5 +1,6 @@
 package com.lucasnvs.waffle.common.ratelimit;
 
+import com.lucasnvs.waffle.auth.domain.AuthenticationService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,9 +15,11 @@ import java.io.IOException;
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private final RateLimitService rateLimitService;
+    private final AuthenticationService authenticationService;
 
-    public RateLimitFilter(RateLimitService rateLimitService) {
+    public RateLimitFilter(RateLimitService rateLimitService, AuthenticationService authenticationService) {
         this.rateLimitService = rateLimitService;
+        this.authenticationService = authenticationService;
     }
 
     @Override
@@ -32,22 +35,24 @@ public class RateLimitFilter extends OncePerRequestFilter {
         if (uri.startsWith("/swagger-ui") ||
             uri.startsWith("/v3/api-docs") ||
             uri.startsWith("/actuator") ||
-            !uri.contains("/raffles")) {
+            uri.startsWith("/firebase-auth-demo.html") ||
+            !uri.startsWith("/api/v1/")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        String userId = request.getHeader("X-User-Id");
+        String userId = authenticationService.getCurrentUserId().orElse(null);
 
         if (userId == null || userId.isBlank()) {
-            response.setStatus(HttpStatus.BAD_REQUEST.value());
-            return;
+            userId = request.getRemoteAddr();
         }
 
         String key = "rate_limit:" + userId;
 
         if (!rateLimitService.allowRequest(key)) {
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Too many requests. Please try again later.\"}");
             return;
         }
 

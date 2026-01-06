@@ -57,6 +57,28 @@ public class RaffleController {
         return ResponseEntity.ok(raffles);
     }
 
+    @GetMapping("/me")
+    @Operation(summary = "Listar minhas rifas", description = "Retorna todas as rifas criadas pelo usuário autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de rifas retornada com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Usuário não autenticado")
+    })
+    public ResponseEntity<List<RaffleResponse>> getMyRaffles() {
+        List<RaffleResponse> raffles = raffleService.getMyRaffles();
+        return ResponseEntity.ok(raffles);
+    }
+
+    @GetMapping("/users/{userId}")
+    @Operation(summary = "Listar rifas de um usuário", description = "Retorna todas as rifas criadas por um usuário específico")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de rifas retornada com sucesso")
+    })
+    public ResponseEntity<List<RaffleResponse>> getRafflesByUserId(
+            @Parameter(description = "ID do usuário (Firebase UID)") @PathVariable String userId) {
+        List<RaffleResponse> raffles = raffleService.getRafflesByUserId(userId);
+        return ResponseEntity.ok(raffles);
+    }
+
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar rifa", description = "Atualiza as informações de uma rifa existente")
     @ApiResponses(value = {

@@ -48,10 +48,9 @@ class TicketServiceTest {
         when(raffleRepository.findById(1L))
                 .thenReturn(Optional.of(raffle));
 
-        PurchaseTicketRequest request =
-                new PurchaseTicketRequest(List.of(42), "user-1");
+        PurchaseTicketRequest request = new PurchaseTicketRequest(List.of(42));
 
-        service.requestPurchase(1L, request);
+        service.requestPurchase(1L, request, "user-1");
 
         verify(producer).send(any(TicketPurchaseMessage.class));
     }
@@ -66,12 +65,11 @@ class TicketServiceTest {
         when(raffleRepository.findById(1L))
                 .thenReturn(Optional.of(raffle));
 
-        PurchaseTicketRequest request =
-                new PurchaseTicketRequest(List.of(42), "user-1");
+        PurchaseTicketRequest request = new PurchaseTicketRequest(List.of(42));
 
         assertThrows(
                 RaffleNotOpenException.class,
-                () -> service.requestPurchase(1L, request)
+                () -> service.requestPurchase(1L, request, "user-1")
         );
 
         verify(producer, never()).send(any());
@@ -89,12 +87,11 @@ class TicketServiceTest {
         when(ticketRepository.existsByRaffleIdAndNumber(1L, 42))
                 .thenReturn(true);
 
-        PurchaseTicketRequest request =
-                new PurchaseTicketRequest(List.of(42), "user-1");
+        PurchaseTicketRequest request = new PurchaseTicketRequest(List.of(42));
 
         assertThrows(
                 TicketAlreadySoldException.class,
-                () -> service.requestPurchase(1L, request)
+                () -> service.requestPurchase(1L, request, "user-1")
         );
 
         verify(producer, never()).send(any());

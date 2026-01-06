@@ -5,6 +5,7 @@ import com.lucasnvs.waffle.common.exception.RaffleNotOpenException;
 import com.lucasnvs.waffle.common.exception.ServiceUnavailableException;
 import com.lucasnvs.waffle.common.exception.TicketAlreadySoldException;
 import com.lucasnvs.waffle.common.exception.InvalidTicketNumberException;
+import com.lucasnvs.waffle.common.exception.UnauthorizedException;
 import com.lucasnvs.waffle.common.exception.dto.ErrorResponse;
 import com.lucasnvs.waffle.common.exception.dto.ValidationErrorResponse;
 import org.slf4j.Logger;
@@ -111,6 +112,18 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
         return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex) {
+        logger.warn("Unauthorized access attempt: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                ex.getMessage(),
+                "UNAUTHORIZED",
+                HttpStatus.FORBIDDEN.value(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)

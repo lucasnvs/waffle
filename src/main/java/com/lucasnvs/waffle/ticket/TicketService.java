@@ -29,7 +29,7 @@ public class TicketService {
         this.ticketRepository = ticketRepository;
     }
 
-    public void requestPurchase(Long raffleId, PurchaseTicketRequest request) {
+    public void requestPurchase(Long raffleId, PurchaseTicketRequest request, String userId) {
         RaffleEntity raffle = raffleRepository.findById(raffleId)
                 .orElseThrow(() -> new RaffleNotFoundException(raffleId));
 
@@ -40,7 +40,7 @@ public class TicketService {
         validateAllTickets(raffleId, raffle, request.numbers());
 
         for (Integer ticketNumber : request.numbers()) {
-            sendMessage(raffleId, ticketNumber, request.userId());
+            sendMessage(raffleId, ticketNumber, userId);
         }
     }
 
