@@ -65,7 +65,7 @@ public class RaffleService {
         raffle.setDrawTime(request.drawTime());
         raffle.setCoverImage(request.coverImage());
         raffle.setContactPhoneNumber(request.contactPhoneNumber());
-        raffle.setPublic(request.isPublic());
+        raffle.setPublic_(request.isPublic());
         raffle.setShowWinnerPublicly(request.showWinnerPublicly());
         raffle.setPaymentMethods(request.paymentMethods());
         raffle.setDrawMethod(request.drawMethod());
@@ -151,7 +151,7 @@ public class RaffleService {
             raffle.setContactPhoneNumber(request.contactPhoneNumber());
         }
         if (request.isPublic() != null) {
-            raffle.setPublic(request.isPublic());
+            raffle.setPublic_(request.isPublic());
         }
         if (request.showWinnerPublicly() != null) {
             raffle.setShowWinnerPublicly(request.showWinnerPublicly());
@@ -199,7 +199,7 @@ public class RaffleService {
                 raffle.getDrawTime(),
                 raffle.getCoverImage(),
                 raffle.getContactPhoneNumber(),
-                raffle.isPublic(),
+                raffle.isPublic_(),
                 raffle.isShowWinnerPublicly(),
                 raffle.getPaymentMethods(),
                 raffle.getDrawMethod(),
