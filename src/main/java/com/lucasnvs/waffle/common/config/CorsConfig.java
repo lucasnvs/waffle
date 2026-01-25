@@ -11,6 +11,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
+                        "https://winera-frontend-production.up.railway.app",
                         "http://localhost:5173",      // Vite development server
                         "http://localhost:3000",      // Alternative frontend port
                         "http://localhost:8080"       // Backend itself
