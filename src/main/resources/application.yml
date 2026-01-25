@@ -1,12 +1,12 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/raffle}
-    username: ${PGUSER:raffle}
-    password: ${PGPASSWORD:raffle}
+    url: jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}
+    username: ${PGUSER}
+    password: ${PGPASSWORD}
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
 
   flyway:
@@ -15,14 +15,15 @@ spring:
     locations: classpath:db/migration
 
   rabbitmq:
-    addresses: ${RABBITMQ_URL:amqp://guest:guest@localhost:5672}
+    addresses: ${RABBITMQ_URL}
 
   data:
     redis:
-      url: ${REDIS_URL:redis://localhost:6379}
+      url: ${REDIS_URL}
 
 server:
   port: ${PORT:8080}
+
 
 resilience4j:
   circuitbreaker:
