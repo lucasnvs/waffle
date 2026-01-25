@@ -3,6 +3,7 @@ package com.lucasnvs.waffle.ticket;
 import com.lucasnvs.waffle.auth.domain.AuthenticationService;
 import com.lucasnvs.waffle.common.idempotency.IdempotencyService;
 import com.lucasnvs.waffle.ticket.dto.PurchaseTicketRequest;
+import com.lucasnvs.waffle.ticket.dto.SoldTicketsResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -31,6 +32,20 @@ public class TicketController {
         this.ticketService = ticketService;
         this.idempotencyService = idempotencyService;
         this.authenticationService = authenticationService;
+    }
+
+    @GetMapping("/sold")
+    @Operation(summary = "Listar tickets vendidos",
+               description = "Retorna os números já vendidos para a rifa informada.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de tickets vendidos retornada"),
+            @ApiResponse(responseCode = "404", description = "Rifa não encontrada")
+    })
+    public ResponseEntity<SoldTicketsResponse> getSold(
+            @Parameter(description = "ID da rifa")
+            @PathVariable Long raffleId
+    ) {
+        return ResponseEntity.ok(ticketService.getSoldTickets(raffleId));
     }
 
     @PostMapping
@@ -88,6 +103,3 @@ public class TicketController {
         );
     }
 }
-
-
-

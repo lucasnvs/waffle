@@ -10,6 +10,7 @@ import java.util.Set;
 
 public record RaffleResponse(
         Long id,
+        String slug,
         String title,
         int totalTickets,
         double ticketPrice,
@@ -27,4 +28,3 @@ public record RaffleResponse(
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {}
-

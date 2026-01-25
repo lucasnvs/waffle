@@ -23,12 +23,39 @@ public class RaffleService {
         this.authenticationService = authenticationService;
     }
 
+    private String shortRandom(int len) {
+        String raw = java.util.UUID.randomUUID().toString().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        return raw.substring(0, Math.min(len, raw.length()));
+    }
+
+    private String generateSlug(String title) {
+        String base = null;
+        if (title != null && !title.isBlank()) {
+            base = title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+            if (base.isBlank()) {
+                base = null; // fallback to random only
+            }
+        }
+
+        for (int i = 0; i < 6; i++) {
+            String suffix = shortRandom(7); // e.g., 3f7a1c2
+            String candidate = (base == null) ? suffix : base + "-" + suffix;
+            if (!raffleRepository.existsBySlug(candidate)) {
+                return candidate;
+            }
+        }
+
+        // Fallback: just a longer random hash
+        return shortRandom(12);
+    }
+
     @Transactional
     public RaffleResponse createRaffle(CreateRaffleRequest request) {
         String currentUserId = authenticationService.getCurrentUserIdOrThrow();
 
         RaffleEntity raffle = new RaffleEntity();
         raffle.setOwnerId(currentUserId);
+        raffle.setSlug(generateSlug(request.title()));
         raffle.setTitle(request.title());
         raffle.setTotalTickets(request.totalTickets());
         raffle.setTicketPrice(request.ticketPrice());
@@ -162,6 +189,7 @@ public class RaffleService {
     private RaffleResponse toResponse(RaffleEntity raffle) {
         return new RaffleResponse(
                 raffle.getId(),
+                raffle.getSlug(),
                 raffle.getTitle(),
                 raffle.getTotalTickets(),
                 raffle.getTicketPrice(),

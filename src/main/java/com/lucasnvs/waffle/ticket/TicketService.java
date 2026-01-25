@@ -9,10 +9,12 @@ import com.lucasnvs.waffle.raffle.RaffleEntity;
 import com.lucasnvs.waffle.raffle.RaffleRepository;
 import com.lucasnvs.waffle.raffle.RaffleStatus;
 import com.lucasnvs.waffle.ticket.dto.PurchaseTicketRequest;
+import com.lucasnvs.waffle.ticket.dto.SoldTicketsResponse;
 import com.lucasnvs.waffle.ticket.queue.TicketPurchaseMessage;
 import com.lucasnvs.waffle.ticket.queue.TicketPurchaseProducer;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,6 +29,15 @@ public class TicketService {
         this.producer = producer;
         this.raffleRepository = raffleRepository;
         this.ticketRepository = ticketRepository;
+    }
+
+    @Transactional(readOnly = true)
+    public SoldTicketsResponse getSoldTickets(Long raffleId) {
+        raffleRepository.findById(raffleId)
+                .orElseThrow(() -> new RaffleNotFoundException(raffleId));
+
+        List<Integer> numbers = ticketRepository.findNumbersByRaffleIdAndStatus(raffleId, TicketStatus.PURCHASED);
+        return new SoldTicketsResponse(raffleId, numbers.size(), numbers);
     }
 
     public void requestPurchase(Long raffleId, PurchaseTicketRequest request, String userId) {

@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface RaffleRepository extends JpaRepository<RaffleEntity, Long> {
     List<RaffleEntity> findByOwnerId(String ownerId);
+    boolean existsBySlug(String slug);
 }

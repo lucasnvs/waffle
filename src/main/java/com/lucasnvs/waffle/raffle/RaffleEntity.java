@@ -68,4 +68,7 @@ public class RaffleEntity {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false, unique = true)
+    private String slug;
 }
