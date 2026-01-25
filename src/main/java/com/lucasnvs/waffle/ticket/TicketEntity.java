@@ -4,6 +4,10 @@ import com.lucasnvs.waffle.raffle.RaffleEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -30,4 +34,12 @@ public class TicketEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "raffle_id")
     private RaffleEntity raffle;
+
+    @CreationTimestamp
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }

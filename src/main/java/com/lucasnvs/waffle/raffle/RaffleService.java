@@ -1,21 +1,211 @@
 package com.lucasnvs.waffle.raffle;
 
+import com.lucasnvs.waffle.auth.domain.AuthenticationService;
+import com.lucasnvs.waffle.common.exception.RaffleNotFoundException;
+import com.lucasnvs.waffle.common.exception.UnauthorizedException;
+import com.lucasnvs.waffle.raffle.dto.CreateRaffleRequest;
+import com.lucasnvs.waffle.raffle.dto.RaffleResponse;
+import com.lucasnvs.waffle.raffle.dto.UpdateRaffleRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RaffleService {
 
     private final RaffleRepository raffleRepository;
+    private final AuthenticationService authenticationService;
 
-    public RaffleService(RaffleRepository raffleRepository) {
+    public RaffleService(RaffleRepository raffleRepository, AuthenticationService authenticationService) {
         this.raffleRepository = raffleRepository;
+        this.authenticationService = authenticationService;
     }
 
-    public RaffleEntity createRaffle(String title, int totalTickets) {
+    private String shortRandom(int len) {
+        String raw = java.util.UUID.randomUUID().toString().replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
+        return raw.substring(0, Math.min(len, raw.length()));
+    }
+
+    private String generateSlug(String title) {
+        String base = null;
+        if (title != null && !title.isBlank()) {
+            base = title.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("(^-|-$)", "");
+            if (base.isBlank()) {
+                base = null; // fallback to random only
+            }
+        }
+
+        for (int i = 0; i < 6; i++) {
+            String suffix = shortRandom(7); // e.g., 3f7a1c2
+            String candidate = (base == null) ? suffix : base + "-" + suffix;
+            if (!raffleRepository.existsBySlug(candidate)) {
+                return candidate;
+            }
+        }
+
+        // Fallback: just a longer random hash
+        return shortRandom(12);
+    }
+
+    @Transactional
+    public RaffleResponse createRaffle(CreateRaffleRequest request) {
+        String currentUserId = authenticationService.getCurrentUserIdOrThrow();
+
         RaffleEntity raffle = new RaffleEntity();
-        raffle.setTitle(title);
-        raffle.setTotalTickets(totalTickets);
+        raffle.setOwnerId(currentUserId);
+        raffle.setSlug(generateSlug(request.title()));
+        raffle.setTitle(request.title());
+        raffle.setTotalTickets(request.totalTickets());
+        raffle.setTicketPrice(request.ticketPrice());
+        raffle.setDescription(request.description());
+        raffle.setHasDrawDate(request.hasDrawDate());
+        raffle.setDrawDate(request.drawDate());
+        raffle.setDrawTime(request.drawTime());
+        raffle.setCoverImage(request.coverImage());
+        raffle.setContactPhoneNumber(request.contactPhoneNumber());
+        raffle.setPublic(request.isPublic());
+        raffle.setShowWinnerPublicly(request.showWinnerPublicly());
+        raffle.setPaymentMethods(request.paymentMethods());
+        raffle.setDrawMethod(request.drawMethod());
         raffle.setStatus(RaffleStatus.OPEN);
-        return raffleRepository.save(raffle);
+
+        RaffleEntity saved = raffleRepository.save(raffle);
+        return toResponse(saved);
+    }
+
+    /**
+     * Verifica se o usuário atual pode gerenciar esta rifa
+     * (é o dono ou é admin)
+     */
+    private void validateOwnership(RaffleEntity raffle) {
+        String currentUserId = authenticationService.getCurrentUserIdOrThrow();
+        boolean isAdmin = authenticationService.isCurrentUserAdmin();
+
+        if (!isAdmin && !raffle.getOwnerId().equals(currentUserId)) {
+            throw new UnauthorizedException("You don't have permission to manage this raffle");
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public RaffleResponse getRaffleById(Long id) {
+        RaffleEntity raffle = raffleRepository.findById(id)
+                .orElseThrow(() -> new RaffleNotFoundException(id));
+        return toResponse(raffle);
+    }
+
+    @Transactional(readOnly = true)
+    public List<RaffleResponse> getAllRaffles() {
+        return raffleRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<RaffleResponse> getRafflesByUserId(String userId) {
+        return raffleRepository.findByOwnerId(userId).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<RaffleResponse> getMyRaffles() {
+        String currentUserId = authenticationService.getCurrentUserIdOrThrow();
+        return getRafflesByUserId(currentUserId);
+    }
+
+    @Transactional
+    public RaffleResponse updateRaffle(Long id, UpdateRaffleRequest request) {
+        RaffleEntity raffle = raffleRepository.findById(id)
+                .orElseThrow(() -> new RaffleNotFoundException(id));
+
+        // Validate ownership before allowing update
+        validateOwnership(raffle);
+
+        if (request.title() != null) {
+            raffle.setTitle(request.title());
+        }
+        if (request.totalTickets() != null) {
+            raffle.setTotalTickets(request.totalTickets());
+        }
+        if (request.ticketPrice() != null) {
+            raffle.setTicketPrice(request.ticketPrice());
+        }
+        if (request.description() != null) {
+            raffle.setDescription(request.description());
+        }
+        if (request.hasDrawDate() != null) {
+            raffle.setHasDrawDate(request.hasDrawDate());
+        }
+        if (request.drawDate() != null) {
+            raffle.setDrawDate(request.drawDate());
+        }
+        if (request.drawTime() != null) {
+            raffle.setDrawTime(request.drawTime());
+        }
+        if (request.coverImage() != null) {
+            raffle.setCoverImage(request.coverImage());
+        }
+        if (request.contactPhoneNumber() != null) {
+            raffle.setContactPhoneNumber(request.contactPhoneNumber());
+        }
+        if (request.isPublic() != null) {
+            raffle.setPublic(request.isPublic());
+        }
+        if (request.showWinnerPublicly() != null) {
+            raffle.setShowWinnerPublicly(request.showWinnerPublicly());
+        }
+        if (request.paymentMethods() != null) {
+            raffle.setPaymentMethods(request.paymentMethods());
+        }
+        if (request.drawMethod() != null) {
+            raffle.setDrawMethod(request.drawMethod());
+        }
+        if (request.status() != null) {
+            raffle.setStatus(request.status());
+        }
+
+        RaffleEntity updated = raffleRepository.save(raffle);
+        return toResponse(updated);
+    }
+
+    @Transactional
+    public void deleteRaffle(Long id) {
+        RaffleEntity raffle = raffleRepository.findById(id)
+                .orElseThrow(() -> new RaffleNotFoundException(id));
+
+        // Validate ownership before allowing delete
+        validateOwnership(raffle);
+
+        raffleRepository.deleteById(id);
+    }
+
+    public RaffleEntity getRaffleEntityById(Long id) {
+        return raffleRepository.findById(id)
+                .orElseThrow(() -> new RaffleNotFoundException(id));
+    }
+
+    private RaffleResponse toResponse(RaffleEntity raffle) {
+        return new RaffleResponse(
+                raffle.getId(),
+                raffle.getSlug(),
+                raffle.getTitle(),
+                raffle.getTotalTickets(),
+                raffle.getTicketPrice(),
+                raffle.getDescription(),
+                raffle.isHasDrawDate(),
+                raffle.getDrawDate(),
+                raffle.getDrawTime(),
+                raffle.getCoverImage(),
+                raffle.getContactPhoneNumber(),
+                raffle.isPublic(),
+                raffle.isShowWinnerPublicly(),
+                raffle.getPaymentMethods(),
+                raffle.getDrawMethod(),
+                raffle.getStatus(),
+                raffle.getCreatedAt(),
+                raffle.getUpdatedAt()
+        );
     }
 }

@@ -36,6 +36,7 @@ class TicketIdempotencyIntegrationTest
         RaffleEntity raffle = new RaffleEntity();
         raffle.setTitle("Idempotent Raffle");
         raffle.setTotalTickets(100);
+        raffle.setTicketPrice(10.0);
         raffle.setStatus(RaffleStatus.OPEN);
         raffle = raffleRepository.save(raffle);
 

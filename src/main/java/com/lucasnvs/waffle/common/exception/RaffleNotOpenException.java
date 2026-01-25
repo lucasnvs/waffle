@@ -1,4 +1,4 @@
-package com.lucasnvs.waffle.exception;
+package com.lucasnvs.waffle.common.exception;
 
 public class RaffleNotOpenException extends RuntimeException {
     public RaffleNotOpenException(Long raffleId) {
