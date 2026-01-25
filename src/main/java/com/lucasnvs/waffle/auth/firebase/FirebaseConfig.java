@@ -10,8 +10,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 
 import jakarta.annotation.PostConstruct;
+
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Configuration class for Firebase Admin SDK.
@@ -37,35 +40,28 @@ public class FirebaseConfig {
     public void initialize() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                ClassPathResource resource = new ClassPathResource(SERVICE_ACCOUNT_FILE);
 
-                // Check if file exists
-                if (!resource.exists()) {
-                    logger.warn("Firebase service account file not found at: {}", SERVICE_ACCOUNT_FILE);
+                String firebaseJson = System.getenv("FIREBASE_SERVICE_ACCOUNT");
+
+                if (firebaseJson == null || firebaseJson.isBlank()) {
+                    logger.warn("Firebase service account not set in environment variable FIREBASE_SERVICE_ACCOUNT");
                     logger.warn("Firebase authentication is disabled. Set firebase.enabled=false in application.yml to suppress this warning.");
                     return;
                 }
 
-                try (InputStream serviceAccount = resource.getInputStream()) {
+                try (InputStream serviceAccount = new ByteArrayInputStream(firebaseJson.getBytes(StandardCharsets.UTF_8))) {
                     FirebaseOptions options = FirebaseOptions.builder()
                             .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                             .build();
 
                     FirebaseApp.initializeApp(options);
-                    logger.info("Firebase Admin SDK initialized successfully");
+                    logger.info("Firebase Admin SDK initialized successfully from environment variable");
                 }
             }
         } catch (IOException e) {
-            logger.error("Failed to initialize Firebase Admin SDK. Check that {} is valid. Error: {}",
-                    SERVICE_ACCOUNT_FILE, e.getMessage());
-            logger.error("Firebase authentication is disabled. To enable, provide a valid {} file.",
-                    SERVICE_ACCOUNT_FILE);
-            logger.debug("Detailed error:", e);
-            // Don't throw exception - allow application to run without Firebase
+            logger.error("Failed to initialize Firebase Admin SDK from environment variable. Error: {}", e.getMessage());
         } catch (Exception e) {
             logger.error("Unexpected error during Firebase initialization: {}", e.getMessage());
-            logger.debug("Detailed error:", e);
-            // Don't throw exception - allow application to run without Firebase
         }
     }
 }
