@@ -42,7 +42,8 @@ public class RaffleEntity {
 
     private String contactPhoneNumber;
 
-    private boolean isPublic;
+    @Column(name = "is_public")
+    private boolean public_;
 
     private boolean showWinnerPublicly;
 
